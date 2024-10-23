@@ -1,10 +1,11 @@
 const express = require('express')
 const { Todo }  = require('./db')
 const {createTodo, updateTodo} = require('./types')
-
+const cors = require('cors')
 const app = express();
 const PORT = 3000;
 
+app.use(cors())
 app.use(express.json());
 
 app.post('/todo', async(req, res)=>{
@@ -17,8 +18,8 @@ app.post('/todo', async(req, res)=>{
         })
     }
     await Todo.create({
-        title : parseInputs.data.title,
-        content : parseInputs.data.content,
+        title : inputs.title,
+        content : inputs.content,
         completed : false
     })
     res.json({
