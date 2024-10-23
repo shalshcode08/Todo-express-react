@@ -1,60 +1,56 @@
-const express = require('express');
-const { createTodo, updateTodo } = require('./types');
-const { todo } = require('./db')
+const express = require('express')
+const { Todo }  = require('./db')
+const {createTodo, updateTodo} = require('./types')
 
 const app = express();
-const port = 3000;
+const PORT = 3000;
 
-app.post('/todo', async (req, res) => {
-    const createPayload = req.body;
-    const parsePayload = createTodo.parse(createPayload)
+app.use(express.json());
 
-    if (!parsePayload.success) {
+app.post('/todo', async(req, res)=>{
+    const inputs = req.body;
+    const parseInputs = createTodo.safeParse(inputs);
+
+    if(!parseInputs.success){
         res.status(411).json({
-            message: "You sent the wrong inputs"
+            msg : "Invalid inputs"
         })
     }
-    //put the date in the mongoDB
-    await todo.create({
-        title: createPayload.title,
-        content: createPayload.content,
-        completed: false
+    await Todo.create({
+        title : parseInputs.data.title,
+        content : parseInputs.data.content,
+        completed : false
     })
     res.json({
-        message: "Todo created"
+        msg : "Todo created"
     })
+});
 
-})
-
-app.get('/todos', async (req, res) => {
-    const todos = await todo.find({});
-    console.log(todos)
+app.get('/todos', async(req, res)=>{
+    const todos = await Todo.find({})
+    console.log(todos);
     res.json({
         todos
     })
-})
+});
 
-app.put('/completed', async (req, res) => {
-    const updatePlayload = req.body;
-    const parsePayload = updateTodo.parse(updatePlayload);
+app.put('/completed', async(req, res)=>{
+    const inputs = req.body;
+    const parseInputs = updateTodo.safeParse(inputs);
 
-    if (!parsePayload.success) {
+    if(!parseInputs.success){
         res.status(411).json({
-            message: "You sent the wrong inputs"
+            msg : "Invalid inputs"
         })
     }
-    await todo.update({
-        _id: req.body.id,
-    },
-        {
-            completed : true
-        })
-        res.json({
-            message : "Todo updated"
-        })
-})
+    await Todo.update({
+        _id : parseInputs.data.id
+    },{
+        completed : true
+    })
+    res.json({
+        msg: "Todo Updated"
+    })
+});
 
-
-app.listen(port, () => {
-    console.log(`Expres app is runnnig on Port ${port}`)
-})
+app.listen(PORT)
